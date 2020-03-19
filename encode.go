@@ -5,9 +5,8 @@ import (
 	"github.com/eoscanada/eos-go"
 	"math/rand"
 	"os"
+	"time"
 )
-
-
 
 type Event struct {
 	Sender    string          `json:"sender"`
@@ -20,7 +19,7 @@ type Event struct {
 
 //  возвращает закодированые байты струкуры Event
 func encodeSendAction(abi *eos.ABI, eventType int) ([]byte, error) {
-	r := rand.New(rand.NewSource(99))
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	event := &Event{
 		Sender:    "test",
@@ -54,4 +53,3 @@ func loadAbiFromFile(filename string) (*eos.ABI, error) {
 
 	return abi, nil
 }
-
