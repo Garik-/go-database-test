@@ -15,6 +15,7 @@ import (
 
 const (
 	contractAbiFileName = "contract.abi"
+	eventAibFileName = "event.abi"
 	contractActionName  = "send"
 	dataSource          = "postgres://test:test@localhost/test"
 	interval            = time.Millisecond * 500
@@ -25,6 +26,7 @@ const (
 func main() {
 	var conn *pgx.Conn
 	var abi *eos.ABI
+
 	var increment int
 	var err error
 
@@ -32,6 +34,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+
 
 	conn, err = pgx.Connect(context.Background(), dataSource)
 	if err != nil {
@@ -60,12 +64,17 @@ func main() {
 	for {
 		select {
 		case <-ticker.C:
-			if data, err := encodeSendAction(abi, 0); err == nil {
+			var data []byte
+			data, err = encodeSendAction(abi,0)
+			if err != nil {
+				log.Fatal(err)
+			}
+
 				if _, err := conn.Exec(context.Background(), sqlInsert, data, increment, increment); err == nil {
 					fmt.Printf("insert block_num %d\tOK\n", increment)
 					increment++
 				}
-			}
+
 		case <-done:
 			return
 		}
