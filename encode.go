@@ -22,11 +22,11 @@ type EventData struct {
 }
 
 type Event struct {
-	Sender    string          `json:"sender"`
-	CasinoID  uint64          `json:"casino_id"`
-	GameID    uint64          `json:"game_id"`
-	RequestID uint64          `json:"req_id"`
-	EventType uint32             `json:"event_type"`
+	Sender    string         `json:"sender"`
+	CasinoID  uint64         `json:"casino_id"`
+	GameID    uint64         `json:"game_id"`
+	RequestID uint64         `json:"req_id"`
+	EventType uint32         `json:"event_type"`
 	Data      EventDataSlice `json:"data"`
 }
 
@@ -61,7 +61,7 @@ func encodeSendAction(abi *eos.ABI, eventType uint32) ([]byte, error) {
 		GameID:    r.Uint64(),
 		RequestID: r.Uint64(),
 		EventType: eventType,
-		Data:    bytes,
+		Data:      bytes,
 	}
 
 	data, err := json.Marshal(event)
