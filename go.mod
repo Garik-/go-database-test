@@ -6,6 +6,7 @@ require (
 	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f // indirect
 	github.com/eoscanada/eos-go v0.9.0
 	github.com/jackc/pgx/v4 v4.5.0
+	github.com/joho/godotenv v1.3.0
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/kr/pty v1.1.8 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
