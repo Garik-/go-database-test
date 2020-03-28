@@ -68,7 +68,9 @@ func main() {
 
 	defer func() {
 		ticker.Stop()
-		conn.Close(context.Background())
+		if err := conn.Close(context.Background()); err != nil {
+			log.Fatal(err)
+		}
 	}()
 
 	// truncate table
