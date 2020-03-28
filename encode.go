@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"github.com/eoscanada/eos-go"
+	"log"
 	"math/rand"
 	"os"
 	"time"
@@ -50,7 +51,7 @@ func encodeSendAction(abi *eos.ABI, eventType uint32) ([]byte, error) {
 		B: r.Uint32(),
 	}
 
-	bytes, err := encode(eventData)
+	encodeBytes, err := encode(eventData)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +62,7 @@ func encodeSendAction(abi *eos.ABI, eventType uint32) ([]byte, error) {
 		GameID:    r.Uint64(),
 		RequestID: r.Uint64(),
 		EventType: eventType,
-		Data:      bytes,
+		Data:      encodeBytes,
 	}
 
 	data, err := json.Marshal(event)
@@ -77,7 +78,11 @@ func loadAbiFromFile(filename string) (*eos.ABI, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func() {
+		if err := f.Close(); err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	abi, err := eos.NewABI(f)
 	if err != nil {
