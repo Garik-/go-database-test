@@ -76,7 +76,9 @@ func main() {
 		log.Fatal(err)
 	}
 
-	ticker := time.NewTicker(*interval)
+	startInterval := float64(2000)
+	ticker := time.NewTicker(time.Duration(startInterval) * time.Millisecond)
+	counter := 1.0
 
 	ctx, cancel := context.WithTimeout(context.Background(), waitConnectionToClose)
 	defer func() {
@@ -122,8 +124,21 @@ func main() {
 			}
 
 			if _, err := conn.Exec(context.Background(), sqlInsert, data, increment, increment); err == nil {
-				log.Printf("insert block_num %d\tOK\n", increment)
+				duration := time.Duration(startInterval/counter) * time.Millisecond
+
+				if duration <= 0 {
+					duration = time.Nanosecond
+					counter = 1.0
+				}
+
+				log.Printf("insert block_num %d, next duration %v\tOK\n", increment, duration)
+
+				ticker.Stop()
+				ticker = time.NewTicker(duration)
+
+				counter++
 				increment++
+
 				eventsTotal.Inc()
 			}
 
