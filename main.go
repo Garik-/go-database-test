@@ -91,9 +91,12 @@ func main() {
 
 	waitShutdownContext, cancelWaitShutdown := context.WithTimeout(mainContext, waitConnectionToClose)
 	defer func() {
-		conn.Close(parentContext)
 		cancelWaitShutdown()
 		parentCancel()
+
+		if err := conn.Close(parentContext); err != nil {
+			log.Fatal(err)
+		}
 		log.Println("database connection closed")
 	}()
 
