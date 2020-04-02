@@ -119,7 +119,7 @@ func main() {
 
 	intervalDurations := [...]time.Duration{time.Second / 100, time.Second / 200, time.Second / 300, time.Second / 400, time.Second / 500}
 
-	periodTicker := time.NewTicker(periodDuration)
+	// periodTicker := time.NewTicker(periodDuration)
 	periodCounter := 0
 
 	intervalTicker := time.NewTicker(intervalDurations[periodCounter])
@@ -132,7 +132,7 @@ loop:
 		select {
 		case <-done:
 			intervalTicker.Stop()
-			periodTicker.Stop()
+			// periodTicker.Stop()
 			break loop
 		case <-intervalTicker.C:
 			if err := insertEvent(parentContext, increment); err != nil {
@@ -142,19 +142,19 @@ loop:
 			increment++
 			eventsTotal.Inc()
 
-		case <-periodTicker.C:
-			log.Printf("period %v cancel", periodDuration)
-			intervalTicker.Stop()
-
-			periodCounter++
-
-			if periodCounter == len(intervalDurations) {
-				periodTicker.Stop()
-				break loop
-			}
-
-			intervalTicker = time.NewTicker(intervalDurations[periodCounter])
-			log.Printf("start interval with %v", intervalDurations[periodCounter])
+			//case <-periodTicker.C:
+			//	log.Printf("period %v cancel", periodDuration)
+			//	intervalTicker.Stop()
+			//
+			//	periodCounter++
+			//
+			//	if periodCounter == len(intervalDurations) {
+			//		periodTicker.Stop()
+			//		break loop
+			//	}
+			//
+			//	intervalTicker = time.NewTicker(intervalDurations[periodCounter])
+			//	log.Printf("start interval with %v", intervalDurations[periodCounter])
 		}
 	}
 
