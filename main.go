@@ -29,8 +29,8 @@ const (
 	waitConnectionToClose = 2 * time.Second
 	periodDuration        = 3 * time.Minute
 
-	sqlTruncate = "TRUNCATE TABLE chain.action_trace"
-	sqlInsert   = "INSERT INTO chain.action_trace(transaction_id, action_ordinal, act_name, act_data, block_num, receipt_global_sequence) VALUES ('A229C41BF5974D45E2EB11D9987B92E980C68AF9A0C170F71CFF868469EF3DC5',1,'send', $1, $2, $3)"
+	sqlInsertAction    = "INSERT INTO chain.action_trace(transaction_id, action_ordinal, act_name, act_data, block_num, receipt_global_sequence) VALUES ('A229C41BF5974D45E2EB11D9987B92E980C68AF9A0C170F71CFF868469EF3DC5',1,'send', $1, $2, $3)"
+	sqlInsertBlockInfo = "INSERT INTO chain.block_info(block_num, timestamp) VALUES ($1, now())"
 )
 
 var (
@@ -53,7 +53,22 @@ func insertEvent(ctx context.Context, increment int) error {
 		return err
 	}
 
-	_, err = conn.Exec(ctx, sqlInsert, data, increment, increment)
+	batch := &pgx.Batch{}
+	batch.Queue(sqlInsertAction, data, increment, increment)
+	batch.Queue(sqlInsertBlockInfo, increment)
+
+	br := conn.SendBatch(ctx, batch)
+	defer func() {
+		br.Close()
+	}()
+
+	for i := 0; i < batch.Len(); i++ {
+		_, err = br.Exec()
+		if err != nil {
+			break
+		}
+	}
+
 	return err
 }
 
@@ -100,12 +115,14 @@ func main() {
 		log.Println("database connection closed")
 	}()
 
-	// truncate table
-	_, err = conn.Exec(parentContext, sqlTruncate)
-	if err != nil {
-		log.Fatal(err)
+	truncates := [...]string{"TRUNCATE TABLE chain.action_trace", "TRUNCATE TABLE chain.block_info"}
+	for _, truncate := range truncates {
+		_, err := conn.Exec(parentContext, truncate)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println(truncate)
 	}
-	log.Println("truncate table action_trace")
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
@@ -117,7 +134,7 @@ func main() {
 		}
 	}()
 
-	intervalDurations := [...]time.Duration{time.Second / 100, time.Second / 200, time.Second / 300, time.Second / 400, time.Second / 500}
+	intervalDurations := [...]time.Duration{time.Second / 5, time.Second / 200, time.Second / 300, time.Second / 400, time.Second / 500}
 
 	// periodTicker := time.NewTicker(periodDuration)
 	periodCounter := 0
