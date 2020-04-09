@@ -3,7 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/eoscanada/eos-go"
+	"github.com/Garik-/go-database-test/encoder" // TODO: change
+	// "github.com/eoscanada/eos-go"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4"
 	"github.com/joho/godotenv"
@@ -23,8 +24,8 @@ import (
 */
 
 const (
-	contractAbiFileName = "contract.abi"
-	contractActionName  = "send"
+	eventABIFileName     = "abi/contract.abi"
+	eventDataABIFileName = "abi/event.abi"
 
 	waitConnectionToClose = 2 * time.Second
 	periodDuration        = 3 * time.Minute
@@ -40,7 +41,7 @@ var (
 		})
 
 	conn *pgx.Conn
-	abi  *eos.ABI
+	enc  *encoder.Encoder
 )
 
 func init() {
@@ -48,7 +49,7 @@ func init() {
 }
 
 func insertEvent(ctx context.Context, increment int) error {
-	data, err := encodeSendAction(abi, 0)
+	data, err := enc.Encode(0)
 	if err != nil {
 		return err
 	}
@@ -91,7 +92,7 @@ func main() {
 
 	server := &http.Server{Addr: os.Getenv("METRICS_ADDR"), Handler: router}
 
-	abi, err = loadAbiFromFile(contractAbiFileName)
+	enc, err = encoder.NewEncoder(eventABIFileName, eventDataABIFileName)
 	if err != nil {
 		log.Fatal(err)
 	}
